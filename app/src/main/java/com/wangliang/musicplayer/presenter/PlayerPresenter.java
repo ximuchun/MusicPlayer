@@ -74,6 +74,9 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
                 mp.seekTo(0);
                 mCurrentState=PLAY_STATE_PAUSE;
                 mViewController.onPlayerStateChange(mCurrentState);
+                stopTimer();
+//                mp.release();
+
             }
         });
     }

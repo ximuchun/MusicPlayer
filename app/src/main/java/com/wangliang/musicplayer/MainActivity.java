@@ -23,6 +23,7 @@ import com.wangliang.musicplayer.services.playerService;
 
 import static com.wangliang.musicplayer.interfaces.MusicPlayControl.PLAY_STATE_PAUSE;
 import static com.wangliang.musicplayer.interfaces.MusicPlayControl.PLAY_STATE_PLAY;
+import static com.wangliang.musicplayer.interfaces.MusicPlayControl.PLAY_STATE_STOP;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -153,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
                             mBtnPaly.setText("Pause");
                             break;
                         case PLAY_STATE_PAUSE:
+                        case PLAY_STATE_STOP:
                             mBtnPaly.setText("Play");
                             break;
                     }
