@@ -3,8 +3,6 @@ package com.wangliang.musicplayer;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -12,14 +10,20 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.MediaController;
+import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.wangliang.musicplayer.data.GetMusicList;
+import com.wangliang.musicplayer.data.SongInfo;
+import com.wangliang.musicplayer.data.ListAdapter;
 import com.wangliang.musicplayer.interfaces.MusicPlayControl;
 import com.wangliang.musicplayer.interfaces.MusicViewControl;
 import com.wangliang.musicplayer.services.playerService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.wangliang.musicplayer.interfaces.MusicPlayControl.PLAY_STATE_PAUSE;
 import static com.wangliang.musicplayer.interfaces.MusicPlayControl.PLAY_STATE_PLAY;
@@ -38,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private String TAG="MainActivity";
     private boolean isUserTouchSeekBar=false;
     private String string;
+    private ListView mListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +55,15 @@ public class MainActivity extends AppCompatActivity {
         initEvent();
         initService();
         initBindService();
+
+
+        List<SongInfo> list;
+        list = new ArrayList<>();
+        GetMusicList getMusicList =new GetMusicList(this);
+        list = getMusicList.getList();
+
+        ListAdapter listAdapter = new ListAdapter(this,list);
+        mListView.setAdapter(listAdapter);
     }
     private void initService() {
         Log.d(TAG, "initService: ");
@@ -111,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
         mTxtTotalTime=findViewById(R.id.totalTime);
         mCurrectTime=findViewById(R.id.currectTime);
         mSeekBar=findViewById(R.id.mSeekBar);
+        mListView = findViewById(R.id.song_list);
     }
 
     class mBtnOnClick implements View.OnClickListener{
@@ -185,6 +200,11 @@ public class MainActivity extends AppCompatActivity {
             if (!isUserTouchSeekBar) {
                 mSeekBar.setProgress(seek);
             }
+        }
+
+        @Override
+        public void onListChange() {
+
         }
     };
 }

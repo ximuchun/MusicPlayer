@@ -6,4 +6,5 @@ public interface MusicViewControl {
     void onTotalTimeChange(int time);
     void onCurrectTimeChange(int time);
     void onSeekChange(int seek);
+    void onListChange();
 }

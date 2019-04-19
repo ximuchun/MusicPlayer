@@ -10,4 +10,5 @@ public interface MusicPlayControl {
     void unRegisterViewControler();
     void playOrPause();
     void seekTo(int seek);
+    void getMusic();
 }

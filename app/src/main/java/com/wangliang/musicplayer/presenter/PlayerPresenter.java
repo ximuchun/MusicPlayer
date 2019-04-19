@@ -66,7 +66,9 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
     }
 
     private void initPlayer() {
-        mediaPlayer = new MediaPlayer();
+        if (mediaPlayer == null) {
+            mediaPlayer = new MediaPlayer();
+        }
         //mediaPlayer.setAudioSessionId(AudioManager.STREAM_MUSIC);
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -88,6 +90,11 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
             seek = (int) (seek * 1.0f / 1000.0 * mediaPlayer.getDuration());
             mediaPlayer.seekTo(seek);
         }
+
+    }
+
+    @Override
+    public void getMusic() {
 
     }
 
