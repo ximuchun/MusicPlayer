@@ -3,32 +3,39 @@ package com.wangliang.musicplayer;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.MediaController;
+import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.wangliang.musicplayer.data.GetMusicList;
+import com.wangliang.musicplayer.data.SongInfo;
+import com.wangliang.musicplayer.data.ListAdapter;
 import com.wangliang.musicplayer.interfaces.MusicPlayControl;
 import com.wangliang.musicplayer.interfaces.MusicViewControl;
 import com.wangliang.musicplayer.services.playerService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.wangliang.musicplayer.interfaces.MusicPlayControl.PLAY_STATE_PAUSE;
 import static com.wangliang.musicplayer.interfaces.MusicPlayControl.PLAY_STATE_PLAY;
+import static com.wangliang.musicplayer.interfaces.MusicPlayControl.PLAY_STATE_STOP;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button mBtnLast;
-    private Button mBtnPaly;
-    private Button mBtnNext;
+    private ImageButton mBtnLast;
+    private ImageButton mBtnPaly;
+    private ImageButton mBtnNext;
     private TextView mTxtTotalTime;
     private TextView mCurrectTime;
     private SeekBar mSeekBar;
@@ -37,6 +44,10 @@ public class MainActivity extends AppCompatActivity {
     private String TAG="MainActivity";
     private boolean isUserTouchSeekBar=false;
     private String string;
+    private ListView mListView;
+    private List<SongInfo> songList;
+    private GetMusicList getMusicList;
+    private ListAdapter listAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,10 +57,21 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate: ");
         ActivityCompat.requestPermissions(this, new String[]{"android.permission.READ_EXTERNAL_STORAGE"},0);
         initView();
+        initSongList();
         initEvent();
         initService();
         initBindService();
+
     }
+
+    private void initSongList() {
+        songList = new ArrayList<>();
+        getMusicList = new GetMusicList(this);
+        songList = getMusicList.getList();
+        listAdapter = new ListAdapter(this, songList);
+        mListView.setAdapter(listAdapter);
+    }
+
     private void initService() {
         Log.d(TAG, "initService: ");
         startService(new Intent(this,playerService.class));
@@ -101,6 +123,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                listAdapter.setCurrectPosition(position);
+                listAdapter.notifyDataSetChanged();
+                musicPlayControl.playOrPause(songList.get(position).path);
+            }
+        });
     }
 
     private void initView() {
@@ -110,23 +140,28 @@ public class MainActivity extends AppCompatActivity {
         mTxtTotalTime=findViewById(R.id.totalTime);
         mCurrectTime=findViewById(R.id.currectTime);
         mSeekBar=findViewById(R.id.mSeekBar);
+        mListView = findViewById(R.id.song_list);
     }
 
     class mBtnOnClick implements View.OnClickListener{
         @Override
         public void onClick(View v) {
+            if( musicPlayControl == null || songList.size()==0) {
+                return;
+            }
             switch (v.getId()){
                 case R.id.mBtnLast:
-                    Toast.makeText(getApplicationContext(),"mBtnLast",Toast.LENGTH_SHORT).show();
-                     break;
+                    musicPlayControl.playOrPause(songList.get(listAdapter.getLastPosition()).path);
+                    listAdapter.setCurrectPosition(listAdapter.getLastPosition());
+                    listAdapter.notifyDataSetChanged();
+                    break;
                 case R.id.mBtnPlay:
-                    if( musicPlayControl != null) {
-                        musicPlayControl.playOrPause();
-                    }
-                    Toast.makeText(getApplicationContext(),"mBtnPlay",Toast.LENGTH_SHORT).show();
+                    musicPlayControl.playOrPause(null);
                     break;
                 case R.id.mBtnNext:
-                    Toast.makeText(getApplicationContext(),"mBtnNext",Toast.LENGTH_SHORT).show();
+                    musicPlayControl.playOrPause(songList.get(listAdapter.getNextPosition()).path);
+                    listAdapter.setCurrectPosition(listAdapter.getNextPosition());
+                    listAdapter.notifyDataSetChanged();
                     break;
             }
         }
@@ -150,10 +185,11 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     switch (states){
                         case PLAY_STATE_PLAY:
-                            mBtnPaly.setText("Pause");
+                            mBtnPaly.setBackgroundResource(R.mipmap.btn_pause);
                             break;
                         case PLAY_STATE_PAUSE:
-                            mBtnPaly.setText("Play");
+                        case PLAY_STATE_STOP:
+                            mBtnPaly.setBackgroundResource(R.mipmap.btn_play);
                             break;
                     }
                 }
@@ -175,7 +211,6 @@ public class MainActivity extends AppCompatActivity {
                     mCurrectTime.setText(string);
                 }
             });
-            Log.d(TAG, "onCurrectTimeChange:" + time);
         }
 
         @Override
@@ -183,6 +218,11 @@ public class MainActivity extends AppCompatActivity {
             if (!isUserTouchSeekBar) {
                 mSeekBar.setProgress(seek);
             }
+        }
+
+        @Override
+        public void onListChange() {
+
         }
     };
 }

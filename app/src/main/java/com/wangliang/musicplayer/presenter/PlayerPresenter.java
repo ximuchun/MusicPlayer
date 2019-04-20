@@ -34,12 +34,17 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
     }
 
     @Override
-    public void playOrPause() {
+    public void playOrPause(String URL) {
+        if (URL != null) {
+            initPlayer();
+        }
+        if (mediaPlayer == null) {
+            return;
+        }
         Log.d(TAG, "playOrPause: " + mCurrentState);
         if (mCurrentState==PLAY_STATE_STOP) {
-            initPlayer();
             try {
-                mediaPlayer.setDataSource("/mnt/sdcard/music.mp3");
+                mediaPlayer.setDataSource(URL);
                 mediaPlayer.prepare();
                 mViewController.onTotalTimeChange(mediaPlayer.getDuration());
                 Log.d(TAG, "playOrPauseTIME: "+ mediaPlayer.getDuration());
@@ -66,7 +71,15 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
     }
 
     private void initPlayer() {
-        mediaPlayer = new MediaPlayer();
+        if (mediaPlayer == null) {
+            mediaPlayer = new MediaPlayer();
+        }
+        if(mCurrentState != PLAY_STATE_STOP){
+            stopTimer();
+            mediaPlayer.stop();
+            mediaPlayer.reset();
+            mCurrentState = PLAY_STATE_STOP;
+        }
         //mediaPlayer.setAudioSessionId(AudioManager.STREAM_MUSIC);
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -74,6 +87,9 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
                 mp.seekTo(0);
                 mCurrentState=PLAY_STATE_PAUSE;
                 mViewController.onPlayerStateChange(mCurrentState);
+                stopTimer();
+//                mp.release();
+
             }
         });
     }
@@ -85,6 +101,11 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
             seek = (int) (seek * 1.0f / 1000.0 * mediaPlayer.getDuration());
             mediaPlayer.seekTo(seek);
         }
+
+    }
+
+    @Override
+    public void getMusic() {
 
     }
 
