@@ -1,14 +1,17 @@
 package com.wangliang.musicplayer.interfaces;
 
+import com.wangliang.musicplayer.data.ListAdapter;
+
 public interface MusicPlayControl {
 
-    int PLAY_STATE_PLAY = 1;
-    int PLAY_STATE_PAUSE = 2;
-    int PLAY_STATE_STOP = 3;
-
     void registerViewControler(MusicViewControl viewControler);
+    void registerListControler(ListAdapter listControler);
     void unRegisterViewControler();
+    void unRegisterListControler();
     void playOrPause(String URL);
+    void playLast();
+    void playNext();
     void seekTo(int seek);
-    void getMusic();
+    void updateUIrequest();
+    void setCurrectListPosition(int position);
 }

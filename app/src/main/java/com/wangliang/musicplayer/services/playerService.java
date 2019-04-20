@@ -30,6 +30,8 @@ public class playerService extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy: ");
+        playerPresenter.unRegisterListControler();
+        playerPresenter.unRegisterViewControler();
         playerPresenter = null;
     }
 }

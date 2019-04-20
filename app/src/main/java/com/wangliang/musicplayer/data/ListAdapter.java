@@ -12,12 +12,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.wangliang.musicplayer.R;
+import com.wangliang.musicplayer.interfaces.MusicListControl;
 
 import java.util.List;
 
-public class ListAdapter extends BaseAdapter {
+public class ListAdapter extends BaseAdapter implements MusicListControl {
     Context context;
-    List<SongInfo> list;
+    public List<SongInfo> list;
     private int innerPosition=-1;
 
     public ListAdapter(Context mainActivity, List<SongInfo> list) {
@@ -73,16 +74,29 @@ public class ListAdapter extends BaseAdapter {
         Animation operatingAnim;
         LinearInterpolator lin;
     }
+
+    @Override
     public void setCurrectPosition(int position){
         this.innerPosition = position;
     }
+
+    @Override
     public  int getCurrectPosition(){
         return  innerPosition;
     }
+
+    @Override
     public  int getLastPosition(){
         return  (innerPosition-1)<0 ? (list.size()-1) : (innerPosition-1);
     }
+
+    @Override
     public  int getNextPosition(){
         return  (innerPosition+1)>(list.size()-1) ? 0 : (innerPosition+1);
+    }
+
+    @Override
+    public void onPlayerStateChange(int status) {
+        notifyDataSetChanged();
     }
 }

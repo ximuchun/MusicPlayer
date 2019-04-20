@@ -10,12 +10,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.wangliang.musicplayer.data.GetMusicList;
 import com.wangliang.musicplayer.data.SongInfo;
@@ -24,12 +22,11 @@ import com.wangliang.musicplayer.interfaces.MusicPlayControl;
 import com.wangliang.musicplayer.interfaces.MusicViewControl;
 import com.wangliang.musicplayer.services.playerService;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static com.wangliang.musicplayer.interfaces.MusicPlayControl.PLAY_STATE_PAUSE;
-import static com.wangliang.musicplayer.interfaces.MusicPlayControl.PLAY_STATE_PLAY;
-import static com.wangliang.musicplayer.interfaces.MusicPlayControl.PLAY_STATE_STOP;
+import static com.wangliang.musicplayer.utils.Constants.PLAY_STATE_PAUSE;
+import static com.wangliang.musicplayer.utils.Constants.PLAY_STATE_PLAY;
+import static com.wangliang.musicplayer.utils.Constants.PLAY_STATE_STOP;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -47,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView mListView;
     private List<SongInfo> songList;
     private GetMusicList getMusicList;
-    private ListAdapter listAdapter;
+    private ListAdapter mListAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,11 +62,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initSongList() {
-        songList = new ArrayList<>();
         getMusicList = new GetMusicList(this);
         songList = getMusicList.getList();
-        listAdapter = new ListAdapter(this, songList);
-        mListView.setAdapter(listAdapter);
+        mListAdapter = new ListAdapter(this, songList);
+        mListView.setAdapter(mListAdapter);
     }
 
     private void initService() {
@@ -90,6 +86,8 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName name, IBinder service) {
             musicPlayControl = (MusicPlayControl) service;
             musicPlayControl.registerViewControler(musicViewControl);
+            musicPlayControl.registerListControler(mListAdapter);
+            musicPlayControl.updateUIrequest();
         }
 
         @Override
@@ -126,8 +124,8 @@ public class MainActivity extends AppCompatActivity {
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                listAdapter.setCurrectPosition(position);
-                listAdapter.notifyDataSetChanged();
+                mListAdapter.setCurrectPosition(position);
+                mListAdapter.notifyDataSetChanged();
                 musicPlayControl.playOrPause(songList.get(position).path);
             }
         });
@@ -151,17 +149,13 @@ public class MainActivity extends AppCompatActivity {
             }
             switch (v.getId()){
                 case R.id.mBtnLast:
-                    musicPlayControl.playOrPause(songList.get(listAdapter.getLastPosition()).path);
-                    listAdapter.setCurrectPosition(listAdapter.getLastPosition());
-                    listAdapter.notifyDataSetChanged();
+                    musicPlayControl.playLast();
                     break;
                 case R.id.mBtnPlay:
                     musicPlayControl.playOrPause(null);
                     break;
                 case R.id.mBtnNext:
-                    musicPlayControl.playOrPause(songList.get(listAdapter.getNextPosition()).path);
-                    listAdapter.setCurrectPosition(listAdapter.getNextPosition());
-                    listAdapter.notifyDataSetChanged();
+                    musicPlayControl.playNext();
                     break;
             }
         }
@@ -171,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         if (mPlayerConnection != null){
             Log.d(TAG, "onDestroy: ");
+            musicPlayControl.setCurrectListPosition(mListAdapter.getCurrectPosition());
             //musicPlayControl.unRegisterViewControler();
             unbindService(mPlayerConnection);
             //stopService(new Intent(this,playerService.class));
@@ -218,11 +213,6 @@ public class MainActivity extends AppCompatActivity {
             if (!isUserTouchSeekBar) {
                 mSeekBar.setProgress(seek);
             }
-        }
-
-        @Override
-        public void onListChange() {
-
         }
     };
 }

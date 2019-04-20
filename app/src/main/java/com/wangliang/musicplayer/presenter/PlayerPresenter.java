@@ -1,18 +1,20 @@
 package com.wangliang.musicplayer.presenter;
 
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
-import com.wangliang.musicplayer.R;
+import com.wangliang.musicplayer.data.ListAdapter;
 import com.wangliang.musicplayer.interfaces.MusicPlayControl;
 import com.wangliang.musicplayer.interfaces.MusicViewControl;
 
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static com.wangliang.musicplayer.utils.Constants.PLAY_STATE_PAUSE;
+import static com.wangliang.musicplayer.utils.Constants.PLAY_STATE_PLAY;
+import static com.wangliang.musicplayer.utils.Constants.PLAY_STATE_STOP;
 
 
 public class PlayerPresenter extends Binder implements MusicPlayControl {
@@ -22,10 +24,17 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
     private MediaPlayer mediaPlayer;
     private Timer mTimer;
     private seekTimeTask mSeekTask;
+    private ListAdapter mListControler;
+    private int currectListPosition;
 
     @Override
     public void registerViewControler(MusicViewControl viewControler) {
         this.mViewController = viewControler;
+    }
+
+    @Override
+    public void registerListControler(ListAdapter listControler) {
+        this.mListControler =listControler;
     }
 
     @Override
@@ -34,11 +43,18 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
     }
 
     @Override
+    public void unRegisterListControler() {
+        this.mListControler = null;
+    }
+
+    @Override
     public void playOrPause(String URL) {
         if (URL != null) {
             initPlayer();
         }
         if (mediaPlayer == null) {
+            mListControler.setCurrectPosition(0);
+            playOrPause(mListControler.list.get(mListControler.getCurrectPosition()).path);
             return;
         }
         Log.d(TAG, "playOrPause: " + mCurrentState);
@@ -54,7 +70,7 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else if (mCurrentState==PLAY_STATE_PAUSE) {
+        }else if (mCurrentState==PLAY_STATE_PAUSE) {
             startTimer();
             mediaPlayer.start();
             mCurrentState=PLAY_STATE_PLAY;
@@ -67,7 +83,20 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
         }
         if (mViewController != null) {
             mViewController.onPlayerStateChange(mCurrentState);
+            mListControler.onPlayerStateChange(mCurrentState);
         }
+    }
+
+    @Override
+    public void playLast() {
+        playOrPause(mListControler.list.get(mListControler.getLastPosition()).path);
+        mListControler.setCurrectPosition(mListControler.getLastPosition());
+    }
+
+    @Override
+    public void playNext() {
+        playOrPause(mListControler.list.get(mListControler.getNextPosition()).path);
+        mListControler.setCurrectPosition(mListControler.getNextPosition());
     }
 
     private void initPlayer() {
@@ -85,8 +114,11 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 mp.seekTo(0);
+                mViewController.onSeekChange(0);
+                mViewController.onCurrectTimeChange(0);
                 mCurrentState=PLAY_STATE_PAUSE;
                 mViewController.onPlayerStateChange(mCurrentState);
+                mListControler.onPlayerStateChange(mCurrentState);
                 stopTimer();
 //                mp.release();
 
@@ -105,8 +137,24 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
     }
 
     @Override
-    public void getMusic() {
+    public void updateUIrequest() {
 
+        if (mediaPlayer != null) {
+
+            mViewController.onSeekChange(
+                    (int) (mediaPlayer.getCurrentPosition()* 1000.0f /mediaPlayer.getDuration()));
+            mViewController.onCurrectTimeChange(mediaPlayer.getCurrentPosition());
+            mViewController.onTotalTimeChange(mediaPlayer.getDuration());
+            mListControler.setCurrectPosition(currectListPosition);
+            mViewController.onPlayerStateChange(mCurrentState);
+            mListControler.onPlayerStateChange(mCurrentState);
+
+        }
+    }
+
+    @Override
+    public void setCurrectListPosition(int position) {
+        this.currectListPosition = position;
     }
 
     private void startTimer(){
@@ -133,7 +181,6 @@ public class PlayerPresenter extends Binder implements MusicPlayControl {
                 mViewController.onSeekChange(
                         (int) (mediaPlayer.getCurrentPosition()* 1000.0f /mediaPlayer.getDuration()));
                 mViewController.onCurrectTimeChange(mediaPlayer.getCurrentPosition());
-                mViewController.onPlayerStateChange(mCurrentState);
             }
         }
     }
