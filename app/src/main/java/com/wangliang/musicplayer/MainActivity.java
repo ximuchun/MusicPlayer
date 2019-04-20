@@ -9,7 +9,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -31,9 +33,9 @@ import static com.wangliang.musicplayer.interfaces.MusicPlayControl.PLAY_STATE_S
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button mBtnLast;
-    private Button mBtnPaly;
-    private Button mBtnNext;
+    private ImageButton mBtnLast;
+    private ImageButton mBtnPaly;
+    private ImageButton mBtnNext;
     private TextView mTxtTotalTime;
     private TextView mCurrectTime;
     private SeekBar mSeekBar;
@@ -43,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
     private boolean isUserTouchSeekBar=false;
     private String string;
     private ListView mListView;
+    private List<SongInfo> songList;
+    private GetMusicList getMusicList;
+    private ListAdapter listAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,19 +57,21 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate: ");
         ActivityCompat.requestPermissions(this, new String[]{"android.permission.READ_EXTERNAL_STORAGE"},0);
         initView();
+        initSongList();
         initEvent();
         initService();
         initBindService();
 
+    }
 
-        List<SongInfo> list;
-        list = new ArrayList<>();
-        GetMusicList getMusicList =new GetMusicList(this);
-        list = getMusicList.getList();
-
-        ListAdapter listAdapter = new ListAdapter(this,list);
+    private void initSongList() {
+        songList = new ArrayList<>();
+        getMusicList = new GetMusicList(this);
+        songList = getMusicList.getList();
+        listAdapter = new ListAdapter(this, songList);
         mListView.setAdapter(listAdapter);
     }
+
     private void initService() {
         Log.d(TAG, "initService: ");
         startService(new Intent(this,playerService.class));
@@ -116,6 +123,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                listAdapter.setCurrectPosition(position);
+                listAdapter.notifyDataSetChanged();
+                musicPlayControl.playOrPause(songList.get(position).path);
+            }
+        });
     }
 
     private void initView() {
@@ -131,18 +146,22 @@ public class MainActivity extends AppCompatActivity {
     class mBtnOnClick implements View.OnClickListener{
         @Override
         public void onClick(View v) {
+            if( musicPlayControl == null || songList.size()==0) {
+                return;
+            }
             switch (v.getId()){
                 case R.id.mBtnLast:
-                    Toast.makeText(getApplicationContext(),"mBtnLast",Toast.LENGTH_SHORT).show();
-                     break;
+                    musicPlayControl.playOrPause(songList.get(listAdapter.getLastPosition()).path);
+                    listAdapter.setCurrectPosition(listAdapter.getLastPosition());
+                    listAdapter.notifyDataSetChanged();
+                    break;
                 case R.id.mBtnPlay:
-                    if( musicPlayControl != null) {
-                        musicPlayControl.playOrPause();
-                    }
-                    Toast.makeText(getApplicationContext(),"mBtnPlay",Toast.LENGTH_SHORT).show();
+                    musicPlayControl.playOrPause(null);
                     break;
                 case R.id.mBtnNext:
-                    Toast.makeText(getApplicationContext(),"mBtnNext",Toast.LENGTH_SHORT).show();
+                    musicPlayControl.playOrPause(songList.get(listAdapter.getNextPosition()).path);
+                    listAdapter.setCurrectPosition(listAdapter.getNextPosition());
+                    listAdapter.notifyDataSetChanged();
                     break;
             }
         }
@@ -166,11 +185,11 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     switch (states){
                         case PLAY_STATE_PLAY:
-                            mBtnPaly.setText("Pause");
+                            mBtnPaly.setBackgroundResource(R.mipmap.btn_pause);
                             break;
                         case PLAY_STATE_PAUSE:
                         case PLAY_STATE_STOP:
-                            mBtnPaly.setText("Play");
+                            mBtnPaly.setBackgroundResource(R.mipmap.btn_play);
                             break;
                     }
                 }
@@ -192,7 +211,6 @@ public class MainActivity extends AppCompatActivity {
                     mCurrectTime.setText(string);
                 }
             });
-            Log.d(TAG, "onCurrectTimeChange:" + time);
         }
 
         @Override

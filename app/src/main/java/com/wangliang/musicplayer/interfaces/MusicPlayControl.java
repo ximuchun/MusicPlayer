@@ -8,7 +8,7 @@ public interface MusicPlayControl {
 
     void registerViewControler(MusicViewControl viewControler);
     void unRegisterViewControler();
-    void playOrPause();
+    void playOrPause(String URL);
     void seekTo(int seek);
     void getMusic();
 }
