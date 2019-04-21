@@ -1,5 +1,6 @@
 package com.wangliang.musicplayer;
 
+import android.animation.ObjectAnimator;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -9,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -58,7 +60,6 @@ public class MainActivity extends AppCompatActivity {
         initEvent();
         initService();
         initBindService();
-
     }
 
     private void initSongList() {
@@ -180,11 +181,11 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     switch (states){
                         case PLAY_STATE_PLAY:
-                            mBtnPaly.setBackgroundResource(R.mipmap.btn_pause);
+                            mBtnPaly.setImageResource(R.mipmap.btn_pause);
                             break;
                         case PLAY_STATE_PAUSE:
                         case PLAY_STATE_STOP:
-                            mBtnPaly.setBackgroundResource(R.mipmap.btn_play);
+                            mBtnPaly.setImageResource(R.mipmap.btn_play);
                             break;
                     }
                 }

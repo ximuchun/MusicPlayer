@@ -10,12 +10,16 @@
         android:id="@+id/song_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="60" />
+        android:layout_weight="60"
+        android:divider="@null"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:choiceMode="singleChoice"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="8"
+        android:layout_weight="3"
         android:gravity="bottom"
         android:orientation="horizontal">
 
@@ -33,7 +37,12 @@
             android:layout_weight="9"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:max="1000"/>
+            android:max="1000"
+            android:maxHeight="5dp"
+            android:minHeight="5dp"
+            android:layout_marginBottom="4dp"
+            android:thumb="@mipmap/seekbar"
+            android:progressDrawable="@drawable/seekbar_background"/>
 
         <TextView
             android:id="@+id/totalTime"
@@ -63,11 +72,12 @@
 
         <ImageButton
             android:id="@+id/mBtnPlay"
-            android:background="@mipmap/btn_play"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
+            android:background="#00ffffff"
+            android:src="@mipmap/btn_play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
             android:layout_gravity="center_vertical"/>
 
         <ImageButton
